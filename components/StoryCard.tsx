@@ -12,7 +12,7 @@ export function StoryCard({ story }: StoryCardProps) {
   const month = date.toLocaleDateString('en-US', { month: 'long' });
   const day = date.getDate();
   const year = date.getFullYear();
-  const storyUrl = `/rs-en/${story.brandName ? story.brandName.toLowerCase().replace(/\s+/g, '-') : 'our'}-stories/${story.slug}`;
+  const storyUrl = `/rs-en/stories/${story.slug}`;
   const imageSrc = story.image || IMAGE_FALLBACK.STORY;
   const altText = story.imageAlt || story.title || 'Story image';
 

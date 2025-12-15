@@ -1,7 +1,7 @@
 /** @type {import('@webflow/webflow-cli').WebflowConfig} */
 export default {
   // Mount path where your app will be accessible on Webflow
-  mountPath: '/rs-en/our-stories',
+  mountPath: '/rs-en/stories',
 
   // Framework configuration
   framework: 'nextjs',

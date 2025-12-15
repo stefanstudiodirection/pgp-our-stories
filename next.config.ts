@@ -2,10 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // Base path for Webflow Cloud deployment
-  basePath: process.env.NODE_ENV === 'production' ? '/rs-en/our-stories' : '',
+  basePath: process.env.NODE_ENV === 'production' ? '/rs-en/stories' : '',
 
   // Asset prefix for production
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/rs-en/our-stories' : '',
+  assetPrefix: process.env.NODE_ENV === 'production' ? '/rs-en/stories' : '',
 
   images: {
     remotePatterns: [
