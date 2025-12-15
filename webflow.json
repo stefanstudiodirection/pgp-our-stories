@@ -1,9 +1,5 @@
 {
-  "siteId": "636a16f770681aa10bfb0cbc",
-  "cosmic": {
-    "framework": "nextjs",
-    "mountPath": "/rs-en/stories",
-    "buildCommand": "npm run build",
-    "outputDirectory": ".next"
+  "cloud": {
+    "framework": "nextjs"
   }
 }
