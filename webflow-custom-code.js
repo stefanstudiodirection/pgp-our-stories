@@ -15,6 +15,8 @@
   let currentOffset = 0;
   let isLoading = false;
   let hasMore = true;
+  let allFetchedStories = []; // Store all stories for client-side filtering
+  let filteredStories = []; // Filtered stories based on region
 
   // Get DOM elements
   const container = document.getElementById('stories-container');
@@ -26,22 +28,99 @@
   }
 
   /**
-   * Fetch stories from API
+   * Detect region from URL
    */
-  async function fetchStories(offset = 0) {
+  function getRegionFromURL() {
+    const path = window.location.pathname;
+
+    // Extract region prefix (e.g., /rs-en/, /eu-hu/, etc.)
+    const match = path.match(/^\/(rs|eu|me|ww)-/);
+
+    if (!match) return 'ww'; // Default to worldwide
+
+    return match[1]; // Returns: 'rs', 'eu', 'me', or 'ww'
+  }
+
+  /**
+   * Tag ID to Name mapping (from Webflow schema)
+   */
+  const TAG_MAP = {
+    '32a6732ea3c35edc7bf1fc94dbde051f': 'Boutique Belgrade',
+    '11d155df25d184496c712dc68560cc4e': 'Boutique Budapest',
+    '73154105964515051d6cca0407ef9abb': 'Boutique Porto Montenegro'
+  };
+
+  /**
+   * Filter stories based on region rules
+   */
+  function filterStoriesByRegion(stories, region) {
+    return stories.filter(story => {
+      const { _collectionKey, fieldData } = story;
+      const tagId = fieldData.tag;
+      const tagName = TAG_MAP[tagId];
+
+      switch(region) {
+        case 'rs': // Serbia (/rs-en/, /rs-sr/)
+          // Show all EXCEPT Our Stories with Boutique Budapest or Porto Montenegro tags
+          if (_collectionKey === 'our-stories') {
+            if (tagName === 'Boutique Budapest' || tagName === 'Boutique Porto Montenegro') {
+              return false;
+            }
+          }
+          return true;
+
+        case 'eu': // Europe/Hungary (/eu-en/, /eu-hu/)
+          // Show ONLY Our Stories and Rolex Stories
+          // Exclude Our Stories with Boutique Belgrade or Porto Montenegro tags
+          if (_collectionKey !== 'our-stories' && _collectionKey !== 'rolex') {
+            return false;
+          }
+          if (_collectionKey === 'our-stories') {
+            if (tagName === 'Boutique Belgrade' || tagName === 'Boutique Porto Montenegro') {
+              return false;
+            }
+          }
+          return true;
+
+        case 'me': // Montenegro (/me-en/, /me-me/)
+          // Show ONLY Our Stories and Rolex Stories
+          // Exclude Our Stories with Boutique Belgrade or Boutique Budapest tags
+          if (_collectionKey !== 'our-stories' && _collectionKey !== 'rolex') {
+            return false;
+          }
+          if (_collectionKey === 'our-stories') {
+            if (tagName === 'Boutique Belgrade' || tagName === 'Boutique Budapest') {
+              return false;
+            }
+          }
+          return true;
+
+        case 'ww': // Worldwide (/ww-en/)
+        default:
+          // Show everything
+          return true;
+      }
+    });
+  }
+
+  /**
+   * Fetch ALL stories from API (no pagination on API side)
+   */
+  async function fetchAllStories() {
     try {
       const response = await fetch(
-        `${API_BASE_URL}?all=true&offset=${offset}&limit=${ITEMS_PER_PAGE}`
+        `${API_BASE_URL}?all=true&limit=1000` // Fetch all stories
       );
 
       if (!response.ok) {
         throw new Error('Failed to fetch stories');
       }
 
-      return await response.json();
+      const data = await response.json();
+      return data.items || [];
     } catch (error) {
       console.error('Error fetching stories:', error);
-      return null;
+      return [];
     }
   }
 
@@ -173,9 +252,9 @@
   }
 
   /**
-   * Load more stories
+   * Load more stories (from filtered list)
    */
-  async function loadMore() {
+  function loadMore() {
     if (isLoading || !hasMore) return;
 
     isLoading = true;
@@ -187,14 +266,15 @@
       loadMoreBtn.classList.add('is-loading');
     }
 
-    const data = await fetchStories(currentOffset);
+    // Get next batch from filtered stories
+    const nextBatch = filteredStories.slice(currentOffset, currentOffset + ITEMS_PER_PAGE);
 
-    if (data && data.items) {
-      renderStories(data.items);
-      currentOffset += data.items.length;
+    if (nextBatch.length > 0) {
+      renderStories(nextBatch);
+      currentOffset += nextBatch.length;
 
       // Check if there are more stories
-      if (currentOffset >= data.total || data.items.length < ITEMS_PER_PAGE) {
+      if (currentOffset >= filteredStories.length) {
         hasMore = false;
         if (loadMoreBtn) {
           loadMoreBtn.style.display = 'none';
@@ -202,6 +282,9 @@
       }
     } else {
       hasMore = false;
+      if (loadMoreBtn) {
+        loadMoreBtn.style.display = 'none';
+      }
     }
 
     isLoading = false;
@@ -220,7 +303,7 @@
   }
 
   /**
-   * Initialize - Load first batch of stories
+   * Initialize - Fetch and filter stories
    */
   async function init() {
     console.log('Initializing stories...');
@@ -232,7 +315,20 @@
       </div>
     `;
 
-    await loadMore();
+    // Detect region
+    const region = getRegionFromURL();
+    console.log(`Detected region: ${region}`);
+
+    // Fetch all stories
+    allFetchedStories = await fetchAllStories();
+    console.log(`Fetched ${allFetchedStories.length} total stories`);
+
+    // Filter by region
+    filteredStories = filterStoriesByRegion(allFetchedStories, region);
+    console.log(`Filtered to ${filteredStories.length} stories for region ${region}`);
+
+    // Load first batch
+    loadMore();
 
     // Attach load more button event
     if (loadMoreBtn) {
