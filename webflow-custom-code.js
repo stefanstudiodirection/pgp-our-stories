@@ -55,7 +55,13 @@
    */
   function filterStoriesByRegion(stories, region) {
     return stories.filter(story => {
-      const { _collectionKey, fieldData } = story;
+      const { _collectionKey, fieldData, isDraft, isArchived } = story;
+
+      // FIRST: Filter out drafts, archived, and stories without slugs
+      if (isDraft || isArchived || !fieldData.slug) {
+        return false;
+      }
+
       const tagId = fieldData.tag;
       const tagName = TAG_MAP[tagId];
 
