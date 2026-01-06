@@ -29,13 +29,13 @@ export default {
     }
 
     try {
-      // Webflow collection IDs
+      // Webflow collection IDs - CORRECTED
       const COLLECTIONS = {
-        'our-stories': '674e5da2ab9e88cfe8f7e5e1',
-        'messika': '674e5da2ab9e88cfe8f7e5de',
-        'roberto-coin': '674e5da2ab9e88cfe8f7e5db',
-        'timepieces': '674e5da2ab9e88cfe8f7e5d5',
-        'rolex': '674e5da2ab9e88cfe8f7e5d8',
+        'our-stories': '64e76dbbe94dbbf00a71619e',
+        'messika': '64e76dbbe94dbbf00a716348',
+        'roberto-coin': '64e76dbbe94dbbf00a716315',
+        'timepieces': '64e76dbbe94dbbf00a716332',
+        'rolex': '64e76dbbe94dbbf00a71635d',
       };
 
       // ⚠️ REPLACE THIS WITH YOUR ACTUAL WEBFLOW API TOKEN

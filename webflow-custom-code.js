@@ -10,8 +10,7 @@
 
 (function() {
   // Configuration
-  // ⚠️ REPLACE THIS with your Cloudflare Worker URL after deployment
-  const API_BASE_URL = 'https://YOUR-WORKER-NAME.YOUR-SUBDOMAIN.workers.dev';
+  const API_BASE_URL = 'https://webflow-stories.web-migration.workers.dev';
   const ITEMS_PER_PAGE = 12;
   let currentOffset = 0;
   let isLoading = false;
