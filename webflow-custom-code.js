@@ -154,13 +154,29 @@
   }
 
   /**
+   * Get current region and language from URL
+   */
+  function getCurrentRegionPath() {
+    const path = window.location.pathname;
+    // Extract /rs-en/ or /eu-hu/ etc from current URL
+    const match = path.match(/^\/([^\/]+)-([^\/]+)\//);
+
+    if (match) {
+      return `/${match[1]}-${match[2]}`; // Returns /rs-en or /eu-hu etc
+    }
+
+    return '/ww-en'; // Default fallback
+  }
+
+  /**
    * Render a single story card matching Webflow structure
    */
   function createStoryCard(story) {
     const { fieldData, slug, lastPublished } = story;
 
     const collectionInfo = getCollectionInfo(story);
-    const storyUrl = `/rs-en/${collectionInfo.path}/${slug}`;
+    const regionPath = getCurrentRegionPath();
+    const storyUrl = `${regionPath}/${collectionInfo.path}/${slug}`;
 
     // Get image URL - try multiple possible fields
     const imageUrl = fieldData.imge?.url ||
