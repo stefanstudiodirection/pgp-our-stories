@@ -87,10 +87,10 @@ export default {
 
       console.log(`Total stories fetched: ${allStories.length}`);
 
-      // Sort by published date (newest first)
+      // Sort by CMS date field (newest first)
       allStories.sort((a, b) => {
-        const dateA = new Date(a.lastPublished || a.createdOn).getTime();
-        const dateB = new Date(b.lastPublished || b.createdOn).getTime();
+        const dateA = new Date(a.fieldData?.date || a.fieldData?.['published-date'] || a.lastPublished || a.createdOn).getTime();
+        const dateB = new Date(b.fieldData?.date || b.fieldData?.['published-date'] || b.lastPublished || b.createdOn).getTime();
         return dateB - dateA;
       });
 
