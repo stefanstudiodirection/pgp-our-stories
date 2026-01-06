@@ -49,7 +49,7 @@ export default {
       console.log('Fetching stories from all collections...');
 
       // Fetch from all collections in parallel
-      const fetchPromises = Object.values(COLLECTIONS).map(async (collectionId) => {
+      const fetchPromises = Object.entries(COLLECTIONS).map(async ([collectionKey, collectionId]) => {
         const response = await fetch(
           `https://api.webflow.com/v2/collections/${collectionId}/items?limit=100`,
           {
@@ -62,20 +62,26 @@ export default {
 
         if (!response.ok) {
           console.error(`Failed to fetch collection ${collectionId}: ${response.status}`);
-          return { items: [] };
+          return { items: [], collectionKey };
         }
 
-        return await response.json();
+        const data = await response.json();
+        return { items: data.items || [], collectionKey };
       });
 
       // Wait for all requests to complete
       const results = await Promise.all(fetchPromises);
 
-      // Combine all stories
+      // Combine all stories and add collection metadata
       let allStories = [];
       results.forEach((result) => {
         if (result.items && Array.isArray(result.items)) {
-          allStories.push(...result.items);
+          // Add collection key to each item
+          const itemsWithCollection = result.items.map(item => ({
+            ...item,
+            _collectionKey: result.collectionKey
+          }));
+          allStories.push(...itemsWithCollection);
         }
       });
 

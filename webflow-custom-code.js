@@ -49,10 +49,9 @@
    * Determine collection type from story data
    */
   function getCollectionInfo(story) {
-    const { fieldData, cmsLocaleId } = story;
+    const { _collectionKey } = story;
 
-    // Collection mapping based on structure
-    // Check which collection this story belongs to
+    // Collection mapping
     const collectionMap = {
       'our-stories': { path: 'our-stories', name: 'Our Stories' },
       'messika': { path: 'messika-stories', name: 'Messika' },
@@ -61,23 +60,11 @@
       'rolex': { path: 'rolex-stories', name: 'Rolex' }
     };
 
-    // Try to detect collection from field data or other indicators
-    // You may need to adjust this based on your actual data structure
-    let collectionKey = 'our-stories';
-    let categoryName = 'Our Stories';
+    const collection = collectionMap[_collectionKey] || collectionMap['our-stories'];
 
-    // If there's a tag field with a name, use it for category (Our Stories collection)
-    if (fieldData.tag && fieldData.tag.name) {
-      categoryName = fieldData.tag.name;
-    }
-
-    // TODO: Add logic to detect which collection based on story data
-    // For now, using a simple approach - you'll need to refine this
-
-    const collection = collectionMap[collectionKey];
     return {
       path: collection.path,
-      category: categoryName
+      category: collection.name
     };
   }
 
@@ -96,8 +83,8 @@
                      fieldData.image?.url ||
                      '';
 
-    // Format date
-    const dateObj = new Date(lastPublished || fieldData.date || fieldData['published-date']);
+    // Format date - use fieldData.date (CMS field)
+    const dateObj = new Date(fieldData.date || fieldData['published-date'] || lastPublished);
     const monthNames = ["January", "February", "March", "April", "May", "June",
                         "July", "August", "September", "October", "November", "December"];
     const month = monthNames[dateObj.getMonth()];
