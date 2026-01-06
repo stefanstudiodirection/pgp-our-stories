@@ -46,37 +46,116 @@
   }
 
   /**
-   * Render a single story card
+   * Determine collection type from story data
    */
-  function createStoryCard(story) {
-    const { fieldData, slug } = story;
-    const storyUrl = `/rs-en/stories/${slug}`;
+  function getCollectionInfo(story) {
+    const { fieldData, cmsLocaleId } = story;
 
-    // Determine collection/category
-    let category = 'Our Stories';
-    if (fieldData.category) {
-      category = fieldData.category;
+    // Collection mapping based on structure
+    // Check which collection this story belongs to
+    const collectionMap = {
+      'our-stories': { path: 'our-stories', name: 'Our Stories' },
+      'messika': { path: 'messika-stories', name: 'Messika' },
+      'roberto-coin': { path: 'roberto-coin-stories', name: 'Roberto Coin' },
+      'timepieces': { path: 'timepieces-stories', name: 'Timepieces' },
+      'rolex': { path: 'rolex-stories', name: 'Rolex' }
+    };
+
+    // Try to detect collection from field data or other indicators
+    // You may need to adjust this based on your actual data structure
+    let collectionKey = 'our-stories';
+    let categoryName = 'Our Stories';
+
+    // If there's a tag field with a name, use it for category (Our Stories collection)
+    if (fieldData.tag && fieldData.tag.name) {
+      categoryName = fieldData.tag.name;
     }
 
+    // TODO: Add logic to detect which collection based on story data
+    // For now, using a simple approach - you'll need to refine this
+
+    const collection = collectionMap[collectionKey];
+    return {
+      path: collection.path,
+      category: categoryName
+    };
+  }
+
+  /**
+   * Render a single story card matching Webflow structure
+   */
+  function createStoryCard(story) {
+    const { fieldData, slug, lastPublished } = story;
+
+    const collectionInfo = getCollectionInfo(story);
+    const storyUrl = `/rs-en/${collectionInfo.path}/${slug}`;
+
+    // Get image URL - try multiple possible fields
+    const imageUrl = fieldData.imge?.url ||
+                     fieldData['grid-image']?.url ||
+                     fieldData.image?.url ||
+                     '';
+
+    // Format date
+    const dateObj = new Date(lastPublished || fieldData.date || fieldData['published-date']);
+    const monthNames = ["January", "February", "March", "April", "May", "June",
+                        "July", "August", "September", "October", "November", "December"];
+    const month = monthNames[dateObj.getMonth()];
+    const day = dateObj.getDate();
+    const year = dateObj.getFullYear();
+    const formattedDate = `${month} ${day}, ${year}`;
+
     const card = document.createElement('div');
-    card.className = 's__list-item';
+    card.className = 's__list-item w-dyn-item';
+    card.setAttribute('role', 'listitem');
+
     card.innerHTML = `
-      <a href="${storyUrl}" class="stories__link w-inline-block">
-        <div class="stories__imagewrap">
-          ${fieldData.image?.url ? `
-            <img
-              src="${fieldData.image.url}"
-              alt="${fieldData.image.alt || fieldData.name || 'Story image'}"
-              class="stories__image"
-              loading="lazy"
-            />
-          ` : ''}
-        </div>
-        <div class="stories-text-wrap">
-          <p class="par dark-gray" data-i18n="${category}">${category}</p>
-          <h3 class="h5">${fieldData.name || 'Untitled Story'}</h3>
-        </div>
+      <a aria-label="Read more about this story" href="${storyUrl}" class="stories__imagewrap w-inline-block">
+        <img loading="lazy"
+             src="${imageUrl}"
+             alt="${fieldData.name || ''}"
+             sizes="(max-width: 991px) 100vw, 83vw"
+             class="image cover abs">
       </a>
+      <div id="w-node-_416a8728-29ab-cc3a-a8f9-f07f40d57e73-0a716272" class="stories__content">
+        <div class="flex gap16 center mbm">
+          <div class="par gray" data-i18n="${collectionInfo.category}">${collectionInfo.category}</div>
+          <div class="divider"></div>
+          <div class="flex gap4">
+            <div class="par gray" data-i18n="${month}">${month}</div>
+            <div class="flex">
+              <div class="par gray" data-i18n="${day}">${day}</div>
+              <div class="par gray">,&nbsp;</div>
+              <div class="par gray" data-i18n="${year}">${year}</div>
+            </div>
+          </div>
+        </div>
+        <h2 class="stories__content-h2 mbxs" data-i18n="${fieldData.name}">${fieldData.name || 'Untitled'}</h2>
+        <p class="par dark-gray mbs" data-i18n="${fieldData['small-description'] || ''}">${fieldData['small-description'] || ''}</p>
+        <p fs-cmssort-type="date" fs-cmssort-field="date" class="stories__content-date" data-i18n="${formattedDate}">${formattedDate}</p>
+        <div class="stories__content-cta">
+          <a href="${storyUrl}" class="button w-inline-block">
+            <div class="button__text" data-i18n="Read more">Read more</div>
+            <div class="button__iconwrap" style="background-color: rgb(130, 102, 51); color: rgb(255, 255, 255);">
+              <div class="button__icon w-embed" style="transform: translate3d(0%, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); transform-style: preserve-3d;">
+                <svg width="13" height="6" viewBox="0 0 13 6" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9.79995 5.10002V3.70002H0.699951V2.30002H9.79995V0.900024L13.475 3.00002L9.79995 5.10002Z" fill="currentColor"></path>
+                </svg>
+              </div>
+            </div>
+          </a>
+        </div>
+      </div>
+      <div class="stories__bgimage">
+        <img loading="lazy"
+             src="${imageUrl}"
+             alt=""
+             sizes="100vw"
+             class="high-story__bg">
+        <div class="high-story__gradient"></div>
+        <div class="high-story__block"></div>
+        <div class="high-story__overlay"></div>
+      </div>
     `;
 
     return card;
